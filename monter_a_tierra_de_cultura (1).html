@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montería: Tierra de Cultura</title>
+    
+    <!-- Fuentes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'papel': '#F0EBE1',       /* Beige más cálido y viejo */
+                        'papel-oscuro': '#E2D9C8',/* Beige oscurecido para fondos */
+                        'tinta': '#2B2623',       /* Negro/Marrón muy oscuro (tinta vieja) */
+                        'rojo-vintage': '#9E2A2B', /* Rojo oxidado/clásico */
+                        'polvo': '#8B8276',       /* Gris cálido/marrón desaturado */
+                        'vinilo': '#181818',      /* Negro vinilo */
+                        'dorado': '#C5A059',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['"Space Mono"', 'monospace'],
+                    },
+                    boxShadow: {
+                        'foto': '2px 4px 15px rgba(0,0,0,0.15)',
+                        'vinilo': '15px 15px 30px rgba(0,0,0,0.6)',
+                        'consola': '0 20px 40px -10px rgba(43,38,35,0.4), inset 0 2px 0 rgba(255,255,255,0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Textura de ruido global para efecto análogo/viejo */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.05"/%3E%3C/svg%3E');
+            pointer-events: none;
+            z-index: 9990;
+        }
+
+        .lang-active { border-bottom: 2px solid #9E2A2B; color: #9E2A2B; }
+
+        /* =========================================
+           ZONA 1 Y 2: EL ÁLBUM 3D
+           ========================================= */
+        .record-grooves-small { background: repeating-radial-gradient( #111 0, #111 2px, #1a1a1a 3px, #1a1a1a 4px ); }
+        @keyframes spinRecord { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .vinyl-header { animation: spinRecord 20s linear infinite; border-radius: 50%; }
+        .vinyl-record-small { animation: spinRecord 3s linear infinite; border-radius: 50%; }
+        .vinyl-record-small.paused { animation-play-state: paused; }
+
+        /* 3D Flip Container */
+        .flip-container { perspective: 1500px; z-index: 20; }
+        .flipper {
+            transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            position: relative; width: 100%; height: 100%;
+            box-shadow: 5px 10px 30px rgba(0,0,0,0.3);
+        }
+        .flip-container:hover .flipper { transform: rotateY(180deg); }
+        .flip-front, .flip-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .flip-front { transform: rotateY(0deg); z-index: 2; pointer-events: auto; }
+        .flip-back { transform: rotateY(180deg); z-index: 1; pointer-events: none; }
+        .flip-container:hover .flip-front { pointer-events: none; }
+        .flip-container:hover .flip-back { pointer-events: auto; }
+
+        .vinyl-wrapper-small {
+            position: absolute; right: 0; top: 50%;
+            transform: translate(-10%, -50%);
+            transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10;
+        }
+        .flip-container:hover + .vinyl-wrapper-small:not(.slide-out):not(.playing-pos) { transform: translate(5%, -50%); }
+        .vinyl-wrapper-small.slide-out { transform: translate(65%, -50%); }
+        .vinyl-wrapper-small.playing-pos { transform: translate(30%, -50%); }
+
+        /* Partículas de polvo ambiente */
+        @keyframes floatDust {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { transform: translateY(-30px) translateX(15px); opacity: 0.4; }
+        }
+        .dust-particle {
+            position: absolute; background: #8B8276; border-radius: 50%;
+            pointer-events: none; animation: floatDust 8s infinite ease-in-out;
+        }
+
+        /* =========================================
+           ZONA 3: ESTUDIO SONORO (TOCADISCOS AVANZADO)
+           ========================================= */
+        .scene {
+            position: relative; width: 85vw; height: 85vw;
+            max-width: 480px; max-height: 480px;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.4));
+            perspective: 1000px; margin: 0 auto;
+        }
+
+        .disk-wrapper {
+            width: 100%; height: 100%; position: absolute;
+            transform: translateY(0) scale(1) rotateX(0deg);
+            opacity: 1; filter: blur(0);
+        }
+
+        /* Animación para volteo del disco principal */
+        @keyframes flip-out {
+            0% { transform: scale(1) rotateY(0deg) rotateX(0deg); opacity: 1; filter: blur(0); }
+            100% { transform: scale(0.8) rotateY(90deg) rotateX(15deg); opacity: 0.3; filter: blur(10px); }
+        }
+        @keyframes flip-in {
+            0% { transform: scale(0.8) rotateY(-90deg) rotateX(15deg); opacity: 0.3; filter: blur(10px); }
+            100% { transform: scale(1) rotateY(0deg) rotateX(0deg); opacity: 1; filter: blur(0); }
+        }
+
+        .vinyl-disk {
+            width: 100%; height: 100%; background: #000; border-radius: 50%;
+            position: relative; cursor: grab; user-select: none;
+            box-shadow: 0 0 0 10px #111, 0 30px 60px rgba(0,0,0,0.5); border: 2px solid #222;
+        }
+        .vinyl-disk:active { cursor: grabbing; }
+
+        .grooves {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: repeating-radial-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.6) 1px, rgba(255,255,255,0.015) 2px),
+                        radial-gradient(circle at 50% 50%, #222 0%, #000 60%);
+            pointer-events: none;
+        }
+
+        .vinyl-glare {
+            position: absolute; inset: 0; pointer-events: none; border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.05) 10%, transparent 20%, transparent 45%, rgba(255,255,255,0.05) 55%, transparent 65%);
+            opacity: 0.8; transform: rotate(-45deg);
+        }
+
+        .label {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 34%; height: 34%; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 1px solid #111; z-index: 10; pointer-events: none;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            transition: background-color 0.5s ease;
+        }
+
+        .marker {
+            position: absolute; width: 12px; height: 12px;
+            background: #2B2623; border-radius: 50%; top: 50%; left: 50%; z-index: 5;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            cursor: pointer; pointer-events: auto;
+        }
+        .marker:hover { transform: translate(-50%, -50%) scale(1.4); background: #9E2A2B; }
+        .marker.active-under-needle {
+            background: #9E2A2B !important; border-color: #fff !important;
+            box-shadow: 0 0 15px #9E2A2B, inset 0 0 5px rgba(0,0,0,0.5);
+            transform: translate(-50%, -50%) scale(1.6);
+        }
+
+        .tonearm {
+            position: absolute; top: -20px; right: 5%; width: 16px; height: 55%;
+            background: linear-gradient(to right, #C5A059, #E6D5A7, #8B6B2F);
+            transform-origin: 50% 40px; z-index: 30; border-radius: 10px;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.4), inset -2px 0 5px rgba(0,0,0,0.3);
+            pointer-events: none; transform: rotate(25deg); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .headshell {
+            position: absolute; bottom: -5px; left: -18px; width: 50px; height: 70px;
+            background: #181818; border-radius: 4px; transform: rotate(-15deg);
+            border: 1px solid #333; box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Consola de Control del Tocadiscos */
+        .console-base {
+            background: linear-gradient(180deg, #3A332F 0%, #1A1614 100%);
+            border: 2px solid #5A4E46; border-top: 2px solid #7A6A60;
+            border-radius: 8px;
+            box-shadow: var(--tw-shadow-consola);
+        }
+        .console-btn {
+            background: linear-gradient(180deg, #F0EBE1 0%, #D4C5B0 100%);
+            box-shadow: 0 4px 0 #A89882, 0 8px 10px rgba(0,0,0,0.3);
+            color: #2B2623; border: 1px solid #FFF; transition: all 0.1s;
+        }
+        .console-btn:active { box-shadow: 0 0 0 #A89882; transform: translateY(4px); }
+        
+        .custom-slider {
+            -webkit-appearance: none; width: 100%; height: 8px;
+            background: #111; border-radius: 4px; outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 20px;
+            background: linear-gradient(180deg, #C5A059 0%, #8B6B2F 100%);
+            border-radius: 2px; cursor: pointer; border: 1px solid #4A3A1A;
+        }
+
+        /* =========================================
+           ZONA 4: ÉTICA E INTELIGENCIA ARTIFICIAL
+           ========================================= */
+        .before-after-container {
+            position: relative; width: 100%; max-width: 800px; height: 420px;
+            margin: auto; overflow: hidden; border-radius: 4px;
+            box-shadow: 0 15px 35px rgba(43, 38, 35, 0.2); transform: translateZ(0);
+            border: 6px solid #2B2623;
+        }
+        .img-background, .img-foreground {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none;
+        }
+        .img-background { filter: sepia(90%) grayscale(80%) contrast(1.2) brightness(0.85); }
+        .img-foreground { width: 50%; border-right: 3px solid #9E2A2B; box-shadow: 5px 0 15px rgba(0,0,0,0.3); }
+        
+        .slider-input-ia {
+            position: absolute; inset: 0; width: 100%; height: 100%; outline: none;
+            background: transparent; -webkit-appearance: none; margin: 0; cursor: ew-resize; z-index: 10;
+        }
+        .slider-input-ia::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 44px; height: 44px;
+            background: #9E2A2B; border: 3px solid #F0EBE1; border-radius: 50%; cursor: pointer;
+            box-shadow: 0 0 15px rgba(158, 42, 43, 0.6); transition: transform 0.2s;
+        }
+        .slider-input-ia::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+        /* Estilo Archivista del Modal (Bitácora) */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #8B8276; border-radius: 4px; }
+        .polaroid { background: #FAFAFA; padding: 12px 12px 35px 12px; box-shadow: 2px 4px 15px rgba(0,0,0,0.1); transform: rotate(1.5deg); border: 1px solid #E2D9C8; }
+        .tape-effect {
+            position: absolute; width: 70px; height: 22px;
+            background-color: rgba(226, 217, 200, 0.7); box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transform: rotate(-2deg); z-index: 10; backdrop-filter: blur(2px);
+            top: -10px; left: 50%; margin-left: -35px;
+        }
+
+        /* =========================================
+           ZONA 5: CONSOLA DE RADIO SETENTERA
+           ========================================= */
+        .radio-vintage-frame {
+            background: linear-gradient(135deg, #4A3022 0%, #2B1B13 100%);
+            border: 12px solid #5C3E2F;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.9), 0 25px 50px -15px rgba(0,0,0,0.7);
+            border-radius: 8px;
+            position: relative;
+        }
+        .radio-speaker-grill {
+            background-color: #1f1712;
+            background-image: radial-gradient(#3a2b22 1px, transparent 1px), radial-gradient(#3a2b22 1px, #1f1712 1px);
+            background-size: 6px 6px;
+            background-position: 0 0, 3px 3px;
+            border: 2px solid #140F0C;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+        .radio-dial-scale {
+            background: #1C110A;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.05);
+            border: 2px solid #3d2a1e;
+        }
+        .radio-dial-glowing {
+            background: linear-gradient(180deg, rgba(230, 140, 10, 0.2) 0%, rgba(230, 100, 10, 0.03) 100%);
+        }
+        .radio-dial-glowing.active {
+            background: linear-gradient(180deg, rgba(253, 186, 116, 0.45) 0%, rgba(249, 115, 22, 0.15) 100%);
+        }
+        .radio-needle {
+            transition: left 0.1s linear;
+            background: #EA580C;
+            box-shadow: 0 0 8px #F97316;
+        }
+        /* Perillas Metálicas Rotativas */
+        .knob-container {
+            position: relative; width: 64px; height: 64px; cursor: pointer;
+        }
+        .knob-wheel {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: radial-gradient(circle, #D4C5B0 0%, #8B8276 70%, #5A4E46 100%);
+            border: 3px solid #2B2623;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.4);
+            position: relative;
+            transform: rotate(0deg);
+        }
+        .knob-marker {
+            position: absolute; top: 6px; left: 50%; width: 4px; height: 12px;
+            background: #9E2A2B; border-radius: 2px; transform: translateX(-50%);
+        }
+        /* VU Meter de Aguja Analógico */
+        .vu-meter-box {
+            background: #EBE5D8;
+            border: 3px solid #3A332F;
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+            position: relative; overflow: hidden;
+        }
+        .vu-needle {
+            position: absolute; bottom: 0; left: 50%;
+            width: 2px; height: 45px;
+            background: #2B2623;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(-45deg);
+            transition: transform 0.1s ease;
+        }
+        /* Interruptor de palanca metálica */
+        .toggle-lever {
+            width: 14px; height: 28px;
+            background: linear-gradient(to bottom, #FAFAFA, #A1A1AA);
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(-4px);
+            margin: 0 auto;
+        }
+        .toggle-switch-active .toggle-lever {
+            transform: translateY(6px) scaleY(0.9);
+            background: linear-gradient(to bottom, #A1A1AA, #52525B);
+        }
+        /* Nota de Teaser Pegada en la Radio */
+        .note-teaser {
+            background: #F4EAD4;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            border-left: 3px solid #C5A059;
+            transform: rotate(-1deg);
+        }
+
+        /* =========================================
+           SOPORTE MODAL LATERAL (DETALLES CORREGIDO)
+           ========================================= */
+        #detail-panel {
+            position: fixed;
+            right: -100%;
+            top: 0;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            background-color: #F0EBE1 !important; /* Fuerza el color beige papel sólido */
+            z-index: 100;
+            transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 2px solid #2B2623;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 40px rgba(43, 38, 35, 0.3);
+        }
+        #detail-panel.open {
+            right: 0 !important;
+        }
+        
+        /* Fondo de máscara para desenfocar lo de atrás y dar legibilidad absoluta */
+        #detail-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(43, 38, 35, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #detail-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-papel text-tinta font-sans antialiased selection:bg-rojo-vintage selection:text-papel">
+
+    <!-- Navegación -->
+    <nav class="fixed w-full top-0 z-50 bg-papel/95 backdrop-blur-sm border-b-2 border-tinta/20 px-6 py-4 flex flex-col md:flex-row justify-between items-center transition-all shadow-sm gap-4 md:gap-0 animate-fadeIn">
+        <div class="flex items-center gap-2">
+            <a href="#inicio" class="flex items-center gap-2">
+                <img src="logo mtc.png" alt="MTC: Montería, Tierra de cultura, memoria y herencia" class="h-10 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('navbar-logo-text').classList.remove('hidden');">
+                <span id="navbar-logo-text" class="hidden font-serif font-bold text-2xl tracking-widest text-tinta">MTC.</span>
+            </a>
+        </div>
+        <div class="flex flex-col md:flex-row items-center gap-4 md:space-x-10 text-xs font-mono font-bold tracking-widest text-polvo uppercase">
+            <div class="space-x-4 md:space-x-6 flex flex-wrap justify-center">
+                <a href="#inicio" class="hover:text-rojo-vintage transition-colors" data-i18n="nav_intro">Intro</a>
+                <a href="#album" class="hover:text-rojo-vintage transition-colors" data-i18n="nav_album">El Álbum</a>
+                <a href="#estudio" class="hover:text-rojo-vintage transition-colors" data-i18n="nav_studio">Estudio Sonoro</a>
+                <a href="#radio-section" class="hover:text-rojo-vintage transition-colors" data-i18n="nav_radio">Eco del Sinú</a>
+                <a href="#ia-ethics" class="hover:text-rojo-vintage transition-colors" data-i18n="nav_ia">Ética IA</a>
+            </div>
+            <!-- Selector de Idioma -->
+            <div class="flex gap-3 border-l border-polvo/30 pl-4">
+                <button onclick="setLang('es')" id="lang-es" class="hover:text-tinta lang-active transition-colors">ES</button>
+                <button onclick="setLang('en')" id="lang-en" class="hover:text-tinta transition-colors">EN</button>
+                <button onclick="setLang('it')" id="lang-it" class="hover:text-tinta transition-colors">IT</button>
+                <button onclick="setLang('zh')" id="lang-zh" class="hover:text-tinta transition-colors">ZH</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ZONA 1: LANDING PRINCIPAL (RESTAURADA AL DISEÑO CENTRADO EXQUISITO ORIGINAL) -->
+    <header id="inicio" class="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 pt-20 border-b border-polvo/30 bg-papel">
+        <!-- Partículas de polvo vintage flotando -->
+        <div class="dust-particle w-1.5 h-1.5 top-1/4 left-1/4" style="animation-delay: 0s;"></div>
+        <div class="dust-particle w-2.5 h-2.5 top-1/3 right-1/4" style="animation-delay: 2s;"></div>
+        <div class="dust-particle w-1 h-1 bottom-1/4 right-1/3" style="animation-delay: 4.5s;"></div>
+
+        <div class="absolute -top-20 md:top-10 right-[-15%] md:right-[-5%] opacity-10 md:opacity-80 pointer-events-none z-0 mix-blend-multiply">
+            <div class="vinyl-header record-grooves-small w-[500px] h-[500px] md:w-[700px] md:h-[700px] flex items-center justify-center shadow-vinilo border-[4px] border-[#0a0a0a]">
+                <div class="w-[180px] h-[180px] rounded-full bg-papel border border-tinta/30 flex flex-col items-center justify-center text-center p-2 shadow-inner">
+                    <span class="font-mono text-[10px] text-tinta mb-1 border-b border-tinta/30 pb-1">STEREO 33 ⅓ RPM</span>
+                    <h3 class="font-serif font-bold text-xl text-rojo-vintage mt-1" data-i18n="monteria">MONTERÍA</h3>
+                    <div class="w-[15px] h-[15px] rounded-full bg-papel border border-tinta mt-2 shadow-inner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="z-10 text-center max-w-4xl mx-auto mt-20 bg-papel/70 backdrop-blur-md p-8 md:p-12 border border-tinta/10 shadow-xl">
+            <div class="font-mono text-sm text-rojo-vintage tracking-widest mb-4 font-bold" data-i18n="hero_subtitle">ARCHIVOS RECUPERADOS: CÓRDOBA</div>
+            
+            <div class="flex justify-center mb-6 max-w-xs md:max-w-md lg:max-w-2xl mx-auto">
+                <img src="logo mtc.png" alt="MTC: Montería, Tierra de cultura, memoria y herencia" class="w-full h-auto object-contain drop-shadow-[0_5px_8px_rgba(43,38,35,0.15)]" onerror="this.style.display='none'; document.getElementById('hero-fallback-text').classList.remove('hidden');">
+            </div>
+            
+            <h1 id="hero-fallback-text" class="hidden font-serif text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-tinta mb-2 leading-none" data-i18n="monteria">
+                MONTERÍA
+            </h1>
+            
+            <h2 class="font-serif italic text-2xl md:text-4xl text-polvo mb-8" data-i18n="hero_slogan">
+                Tierra de Cultura y Cobres
+            </h2>
+            <p class="font-sans text-lg md:text-xl text-tinta/80 max-w-2xl mx-auto font-light leading-relaxed mb-12" data-i18n="hero_desc">
+                Donde el río Sinú se curva, nace un compás que no se detiene. Bienvenidos a una exploración interactiva por los surcos de nuestra identidad, grabada en acetato y memoria.
+            </p>
+            <a href="#album" class="inline-block border-2 border-tinta text-tinta hover:bg-rojo-vintage hover:text-papel hover:border-rojo-vintage transition-all duration-300 px-8 py-3 font-mono text-xs uppercase tracking-widest font-bold" data-i18n="hero_btn">
+                Bajar la Aguja
+            </a>
+        </div>
+    </header>
+
+    <!-- ZONA 2: EL ÁLBUM DE LA MEMORIA (Carátula 3D) -->
+    <section id="album" class="py-24 px-4 md:px-12 max-w-7xl mx-auto overflow-hidden border-b border-polvo/30">
+        <div class="text-center mb-16 max-w-3xl mx-auto">
+            <h2 class="font-serif text-4xl md:text-5xl font-bold text-tinta mb-4" data-i18n="album_title">La Línea de Tiempo</h2>
+            <p class="text-tinta/70 text-lg font-serif italic mt-4" data-i18n="album_desc">
+                "La historia de la sabana tiene dos caras. Pasa el cursor sobre la carátula para voltearla y selecciona un lado para explorarlo en el Estudio Sonoro."
+            </p>
+        </div>
+
+        <div class="relative w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center gap-10 mt-12 min-h-[450px]">
+            <div class="w-full md:w-[420px] aspect-square relative z-20 flip-container cursor-pointer" id="flip-card">
+                <div class="flipper">
+                    <!-- FRONTAL -->
+                    <div class="flip-front border border-tinta/20 bg-[#D4C5B0] flex flex-col items-center justify-center p-4">
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cardboard.png')] opacity-70 mix-blend-multiply z-0"></div>
+                        <div class="relative z-10 border-[4px] border-tinta w-full h-full p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="font-mono text-[10px] font-bold tracking-widest text-tinta bg-papel/50 px-2 py-1 border border-tinta/20" data-i18n="cover_file">EXPEDIENTE 01</span>
+                                <span class="font-serif italic text-rojo-vintage font-bold" data-i18n="cover_hifi">Alta Fidelidad</span>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="font-serif text-6xl md:text-7xl font-bold text-tinta leading-none tracking-tighter" data-i18n="monteria">MONTERÍA</h3>
+                                <div class="w-2/3 h-[2px] bg-dorado mx-auto mt-4 mb-3"></div>
+                                <p class="font-mono text-xs font-bold tracking-[0.2em] text-tinta/70 uppercase" data-i18n="cover_timeline">Línea de Tiempo Oficial</p>
+                            </div>
+                            <div class="text-center border-t border-tinta/30 pt-4">
+                                <p class="font-sans text-xs uppercase tracking-widest text-rojo-vintage font-bold animate-pulse" data-i18n="cover_hover">Pasa el cursor para voltear ↺</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- TRASERA -->
+                    <div class="flip-back border border-tinta/20 bg-tinta text-papel p-6 relative">
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/aged-paper.png')] opacity-20 mix-blend-overlay z-0"></div>
+                        <div class="relative z-10 h-full flex flex-col">
+                            <div class="text-center mb-6 border-b border-papel/20 pb-4">
+                                <h4 class="font-serif text-3xl font-bold text-dorado" data-i18n="back_tracklist">TRACKLIST OFICIAL</h4>
+                                <p class="font-mono text-[10px] tracking-widest text-papel/60 mt-2" data-i18n="back_select">SELECCIONE LA CARA A EXPLORAR</p>
+                            </div>
+                            <div class="flex flex-col gap-4 flex-1 justify-center">
+                                <!-- Botón A -->
+                                <button onclick="iniciarEstudio('A')" class="w-full text-left p-4 border border-dorado bg-dorado/10 hover:bg-rojo-vintage hover:border-rojo-vintage transition-all duration-300 flex justify-between items-center group shadow-md cursor-pointer pointer-events-auto">
+                                    <div>
+                                        <span class="block font-mono text-[10px] font-bold tracking-widest text-dorado mb-1"><span data-i18n="play_side_a">► LADO A</span></span>
+                                        <span class="font-serif text-2xl text-papel" data-i18n="side_a_title">Orígenes (1501 - 1977)</span>
+                                    </div>
+                                    <svg class="w-6 h-6 text-dorado transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </button>
+                                <!-- Botón B -->
+                                <button onclick="iniciarEstudio('B')" class="w-full text-left p-4 border border-papel/30 bg-transparent hover:bg-rojo-vintage hover:border-rojo-vintage transition-all duration-300 flex justify-between items-center group shadow-md cursor-pointer pointer-events-auto">
+                                    <div>
+                                        <span class="block font-mono text-[10px] font-bold tracking-widest text-papel/60 group-hover:text-dorado mb-1 transition-colors"><span data-i18n="play_side_b">► LADO B</span></span>
+                                        <span class="font-serif text-2xl text-papel" data-i18n="side_b_title">Modernidad (1998 - Hoy)</span>
+                                    </div>
+                                    <svg class="w-6 h-6 text-papel/60 group-hover:text-dorado transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vinilo Animado Pequeño (Visual) -->
+            <div class="vinyl-wrapper-small hidden md:flex w-full md:w-[400px] justify-center" id="disco-vinilo-wrapper-pequeno">
+                <div id="disco-vinilo-pequeno" class="vinyl-record-small record-grooves-small w-[400px] h-[400px] shadow-vinilo flex items-center justify-center border-[6px] border-[#0a0a0a] paused">
+                    <div class="w-[380px] h-[380px] rounded-full border border-white/10 absolute pointer-events-none"></div>
+                    <div class="w-[140px] h-[140px] rounded-full bg-dorado flex flex-col items-center justify-center border border-tinta relative transition-colors duration-500" id="galleta-vinilo-pequena">
+                        <span class="font-mono text-[8px] text-tinta mb-2 font-bold tracking-widest">STEREO</span>
+                        <span id="label-lado-pequeno" class="font-serif text-4xl font-bold text-tinta">LADO A</span>
+                        <div class="w-4 h-4 rounded-full bg-papel-oscuro absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-tinta/30 shadow-inner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ZONA 3: ESTUDIO SONORO (VINILO INTERACTIVO AVANZADO) -->
+    <section id="estudio" class="bg-papel-oscuro min-h-screen py-24 px-4 flex flex-col items-center justify-center relative overflow-hidden border-b-8 border-tinta">
+        <div class="absolute top-10 left-1/2 transform -translate-x-1/2 text-center z-10 w-full px-4">
+            <span class="font-mono text-rojo-vintage text-xs tracking-widest font-bold block mb-2 uppercase" data-i18n="nav_studio">Estudio Sonoro</span>
+            <h2 class="font-serif text-3xl md:text-4xl font-bold text-tinta" data-i18n="studio_title">Archivos de la Sabana</h2>
+            <div class="w-16 h-1 bg-rojo-vintage mx-auto mt-4"></div>
+            <p class="text-sm font-mono mt-4 text-tinta/70" data-i18n="studio_hint">Gira el disco manualmente para viajar en el tiempo</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center w-full max-w-6xl mx-auto mt-20 gap-12 z-20">
+            
+            <!-- Bloque Tocadiscos Interactivo -->
+            <div class="flex flex-col items-center w-full max-w-[500px] shrink-0">
+                
+                <div id="scene-container" class="scene w-full">
+                    <div id="tonearm" class="tonearm"><div class="headshell"></div></div>
+                    <div id="disk-wrapper" class="disk-wrapper">
+                        <div id="disk" class="vinyl-disk touch-none">
+                            <div class="grooves"></div>
+                            <div class="vinyl-glare"></div>
+                            <!-- Marcadores inyectados por JS -->
+                            <div id="markers-layer" class="absolute inset-0 pointer-events-none"></div>
+                            
+                            <div id="vinyl-label" class="label bg-[#D4C5B0]">
+                                <div class="w-3 h-3 bg-tinta rounded-full shadow-inner mb-3 border border-tinta/20"></div>
+                                <span id="side-indicator" class="text-[8px] font-black text-tinta uppercase tracking-widest font-mono">LADO A</span>
+                                <span id="disk-year-label" class="text-[16px] text-rojo-vintage font-serif mt-2 font-bold italic">----</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consola Avanzada (Sintonizador + Botones integrados a la estética) -->
+                <div class="console-base p-6 mt-12 w-full flex flex-col gap-6 z-30">
+                    <div class="flex items-center justify-between">
+                        <div class="font-mono text-xs text-rojo-vintage font-bold tracking-widest" id="ui-side-tag">CONTROL MÁSTER - LADO A</div>
+                        <div id="power-led" class="w-2 h-2 rounded-full bg-rojo-vintage shadow-[0_0_8px_#9E2A2B] animate-pulse"></div>
+                    </div>
+
+                    <!-- Panel: Sintonizador de Épocas Lineal -->
+                    <div class="w-full flex flex-col gap-2">
+                        <div class="w-full flex justify-between items-center px-1">
+                            <span class="text-[9px] text-tinta/60 tracking-[0.3em] uppercase font-bold">Sintonizador de Épocas</span>
+                            <span id="dial-side-indicator" class="text-[9px] text-rojo-vintage tracking-[0.2em] font-bold uppercase hidden sm:block">LADO A</span>
+                        </div>
+                        <!-- Dial Container -->
+                        <div id="dial-container" class="relative w-full h-12 bg-[#111] rounded-sm border border-tinta shadow-[inset_0_4px_15px_rgba(0,0,0,1)] overflow-hidden cursor-ew-resize touch-none">
+                            <div id="dial-markers" class="absolute inset-0"></div>
+                            <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                            <div id="dial-needle" class="absolute top-0 bottom-0 w-[2px] bg-rojo-vintage shadow-[0_0_10px_1px_#9E2A2B] z-10 pointer-events-none transition-none" style="left: 5%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Panel: Controles Físicos -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+                        <div class="flex items-end gap-3 w-full sm:w-auto">
+                            <!-- Botón Start/Stop Motor -->
+                            <button id="toggle-spin-btn" onclick="toggleAutoSpin()" class="console-btn flex-1 sm:flex-none py-3 px-6 text-sm font-bold font-mono tracking-wider rounded flex items-center justify-center gap-2">
+                                <span id="spin-icon">▶</span> <span class="sm:hidden text-xs">MOTOR</span>
+                            </button>
+
+                            <!-- Botón Voltear Lado -->
+                            <button onclick="manualFlip()" class="console-btn py-3 px-4 text-sm font-bold font-mono tracking-wider rounded flex items-center justify-center" title="Voltear Lado">
+                                ⟲
+                            </button>
+                        </div>
+
+                        <!-- Elementos estéticos y Pitch -->
+                        <div class="flex items-center gap-4 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+                            <div class="flex flex-col items-center gap-1">
+                                <input type="range" id="pitch-slider" min="0.5" max="2" step="0.05" value="1" class="custom-slider w-20">
+                                <span class="text-[8px] font-mono text-tinta/60 tracking-widest">PITCH</span>
+                            </div>
+                            <div class="h-8 w-px bg-tinta/20"></div>
+                            <div class="font-mono text-xl text-rojo-vintage bg-[#111] border-2 border-[#222] p-2 rounded shadow-inner w-24 text-center tracking-widest" id="year-display">
+                                ----
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- NUEVA VENTANA DE INFORMACIÓN (OVERLAY) -->
+            <div id="info-window" class="w-full max-w-md bg-papel border-2 border-tinta shadow-consola rounded-sm overflow-hidden opacity-0 transition-opacity duration-500 pointer-events-none mt-10 lg:mt-0 sticky top-32">
+                <!-- Window Titlebar -->
+                <div class="bg-tinta text-papel px-4 py-2 flex justify-between items-center">
+                    <span class="font-mono text-[10px] tracking-widest font-bold">INFO_SISTEMA.exe</span>
+                    <div class="flex gap-2">
+                        <div class="w-3 h-3 rounded-full bg-papel/30"></div>
+                        <div class="w-3 h-3 rounded-full bg-papel/30"></div>
+                    </div>
+                </div>
+                <!-- Window Content -->
+                <div class="p-6 flex flex-col gap-4">
+                    <div class="flex justify-between items-center border-b border-tinta/20 pb-2">
+                        <span id="info-year" class="font-mono text-rojo-vintage font-bold text-lg">----</span>
+                        <span class="font-mono text-[9px] tracking-[0.2em] text-tinta/50 uppercase">Extracción de Datos</span>
+                    </div>
+                    <h3 id="info-title" class="font-serif text-3xl font-bold text-tinta leading-none">Esperando Señal...</h3>
+                    <div class="relative w-full aspect-video bg-tinta/5 border border-tinta/20 rounded-sm overflow-hidden flex items-center justify-center">
+                        <img id="info-img" src="" alt="Archivo" class="w-full h-full object-cover filter sepia contrast-125 brightness-90 mix-blend-multiply opacity-0 transition-opacity duration-300">
+                    </div>
+                    <p id="info-desc" class="font-sans text-sm text-tinta/80 leading-relaxed min-h-[60px]">
+                        Sintonice una época en el disco para visualizar los archivos recuperados.
+                    </p>
+                    <button onclick="abrirDetalleDesdeInfo()" class="mt-2 w-full py-3 bg-transparent border-2 border-tinta text-tinta font-mono text-xs font-bold tracking-widest hover:bg-tinta hover:text-papel transition-colors">
+                        ABRIR BITÁCORA COMPLETA
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ZONA 4: ÉTICA E INTELIGENCIA ARTIFICIAL (CON DISTRIBUCIÓN AVANZADA SOLICITADA) -->
+    <section id="ia-ethics" class="py-24 px-4 bg-papel border-b border-polvo/30">
+        <div class="max-w-4xl mx-auto text-center mb-16">
+            <span class="font-mono text-rojo-vintage text-xs tracking-widest font-bold block mb-2 uppercase" data-i18n="nav_ia">Restauración y Memoria</span>
+            <h2 class="font-serif text-4xl font-bold text-tinta mb-6" data-i18n="ia_title">Ética en la Inteligencia Artificial</h2>
+            <p class="text-tinta/80 font-sans max-w-2xl mx-auto" data-i18n="ia_desc">
+                ¿Hasta qué punto podemos intervenir el pasado sin borrar su esencia? Desliza el control para comparar el archivo original, desgastado por el tiempo, con su restauración asistida por IA.
+            </p>
+        </div>
+
+        <!-- El Slider Comparador (Antes/Después) -->
+        <div class="before-after-container mb-20">
+            <!-- Imagen Original (Fondo) -->
+            <img src="https://images.unsplash.com/photo-1588661642878-62024db54c86?auto=format&fit=crop&q=80&w=1000" class="img-background" alt="[Archivo original dañado sepia de Montería]">
+            
+            <!-- Imagen Restaurada IA (Frente) -->
+            <img src="https://images.unsplash.com/photo-1588661642878-62024db54c86?auto=format&fit=crop&q=80&w=1000" class="img-foreground" id="ia-foreground" alt="[Archivo restaurado mediante inteligencia artificial]">
+            
+            <!-- Control Deslizante -->
+            <input type="range" min="0" max="100" value="50" class="slider-input-ia" id="ia-slider">
+            
+            <div class="absolute bottom-4 left-4 font-mono text-[10px] bg-tinta text-papel px-2 py-1 font-bold pointer-events-none z-20">ORIGINAL 1930</div>
+            <div class="absolute bottom-4 right-4 font-mono text-[10px] bg-rojo-vintage text-papel px-2 py-1 font-bold pointer-events-none z-20">RESTAURACIÓN IA</div>
+        </div>
+
+        <!-- RESTRUCTURACIÓN ESPECÍFICA: Bloque Info Izquierda, Bloque Imagen Derecha -->
+        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 items-center border-t border-tinta/10 pt-16">
+            
+            <!-- Bloque de Información (Izquierda) -->
+            <div class="md:col-span-7 text-left flex flex-col items-start">
+                <span class="font-mono text-rojo-vintage text-[10px] tracking-[0.2em] font-bold block mb-2 uppercase">MATRIZ DE DECISIONES ÉTICAS</span>
+                <h4 class="font-serif text-3xl font-bold text-tinta mb-4">Lineamientos de Generación de Imágenes</h4>
+                <p class="font-sans text-sm md:text-base text-tinta/80 leading-relaxed mb-4">
+                    La recreación digital de la historia del Sinú a través de herramientas sintéticas conlleva una responsabilidad cultural ineludible. Hemos diseñado un set sistemático de control donde catalogamos los sesgos geográficos, consentimiento de archivos y el margen de veracidad en la generación arquitectónica de Córdoba.
+                </p>
+                <p class="font-sans text-sm text-tinta/70 leading-relaxed italic">
+                    Nuestra metodología documenta con absoluta transparencia la procedencia de los datasets originales, el nivel de alucinación algorítmica y el grado de fidelidad técnica implementado en cada fase de restauración patrimonial.
+                </p>
+            </div>
+
+            <!-- Bloque de Imagen / Polaroid Ilustrativa (Derecha) -->
+            <div class="md:col-span-5 flex justify-center">
+                <div class="polaroid max-w-[280px] w-full">
+                    <div class="tape-effect"></div>
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600" alt="[Retrato de época restaurado mediante ControlNet]" class="w-full h-48 object-cover filter sepia brightness-90 grayscale">
+                    <p class="font-mono text-[8px] text-center text-tinta/50 mt-4 uppercase">Simulación de restauración de plano original - Córdoba</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MÁS ABAJO: Zona de Acceso a la Bitácora Técnica (Spreadsheet) -->
+        <div class="mt-16 max-w-4xl mx-auto bg-papel-oscuro/50 border-2 border-tinta/80 p-6 md:p-8 rounded-sm text-left flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></div>
+                <div class="font-mono text-xs font-bold text-tinta/70 uppercase tracking-wider">Bitácora Técnica Activa: Matriz de Control de Calidad e IA</div>
+            </div>
+            <button onclick="abrirSpreadsheet()" class="w-full sm:w-auto shrink-0 px-6 py-4 bg-rojo-vintage hover:bg-tinta text-papel font-mono text-xs font-bold tracking-widest border-2 border-tinta hover:border-tinta transition-all duration-300 shadow-md">
+                ABRIR REGISTRO (SPREADSHEET)
+            </button>
+        </div>
+    </section>
+
+    <!-- ZONA 5: CONSOLA DE RADIO SETENTERA -->
+    <section id="radio-section" class="py-24 px-4 bg-tinta relative overflow-hidden flex flex-col items-center">
+        <!-- Textura de fondo sutil para la zona de radio -->
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-20 pointer-events-none"></div>
+
+        <div class="text-center z-10 mb-16 w-full px-4">
+            <span class="font-mono text-dorado text-xs tracking-widest font-bold block mb-2 uppercase" data-i18n="nav_radio">Transmisión</span>
+            <h2 class="font-serif text-3xl md:text-5xl font-bold text-papel" data-i18n="radio_title">Eco del Sinú AM</h2>
+        </div>
+
+        <div class="radio-vintage-frame p-6 md:p-10 w-full max-w-4xl flex flex-col md:flex-row gap-8 z-10">
+            <!-- Bocina de la radio -->
+            <div class="radio-speaker-grill w-full md:w-1/2 h-48 md:h-72 rounded relative flex items-center justify-center">
+                <div class="w-32 h-32 rounded-full border-2 border-black/40 shadow-inner opacity-20"></div>
+                <div class="note-teaser absolute -top-4 -right-4 p-3 max-w-[120px] text-xs font-serif text-tinta z-20">
+                    <strong class="block text-rojo-vintage font-sans">14:00 PM</strong>
+                    "Sintoniza la frecuencia 19.52 para oír al narrador..."
+                </div>
+            </div>
+
+            <!-- Panel de Control Radio -->
+            <div class="flex-1 flex flex-col justify-between gap-6">
+                <!-- Dial -->
+                <div class="radio-dial-scale h-20 rounded relative flex flex-col justify-center px-4">
+                    <div class="radio-dial-glowing absolute inset-0" id="dial-glow"></div>
+                    <div class="relative z-10 flex justify-between font-mono text-[10px] text-papel/50 font-bold mb-2">
+                        <span>800</span><span>1000</span><span>1200</span><span>1600</span><span class="text-dorado">1952</span>
+                    </div>
+                    <div class="relative w-full h-1 bg-white/10 mt-2">
+                        <div class="radio-needle absolute top-[-10px] bottom-[-10px] w-[3px]" id="radio-needle" style="left: 10%"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-end justify-between gap-4">
+                    <!-- VU Meter -->
+                    <div class="vu-meter-box w-24 h-16 p-1 flex flex-col justify-between">
+                        <div class="flex justify-between text-[8px] font-mono font-bold text-tinta/60 px-1 border-b border-tinta/20 pb-1">
+                            <span>-20</span><span class="text-rojo-vintage">+3</span>
+                        </div>
+                        <div class="relative h-full overflow-hidden mt-1 bg-[#D4C5B0] rounded-sm">
+                            <div class="vu-needle" id="vu-needle"></div>
+                        </div>
+                    </div>
+
+                    <!-- Knobs / Perillas -->
+                    <div class="flex gap-6">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="knob-container" id="knob-vol">
+                                <div class="knob-wheel"><div class="knob-marker"></div></div>
+                            </div>
+                            <span class="font-mono text-[9px] text-dorado uppercase tracking-widest font-bold">Volumen</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="knob-container" id="knob-tune">
+                                <div class="knob-wheel"><div class="knob-marker"></div></div>
+                            </div>
+                            <span class="font-mono text-[9px] text-dorado uppercase tracking-widest font-bold">Sintonía</span>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Switch -->
+                    <div class="flex flex-col items-center gap-2 cursor-pointer" id="power-switch">
+                        <div class="w-8 h-12 bg-[#222] border-2 border-[#111] rounded shadow-inner flex items-center justify-center p-1">
+                            <div class="toggle-lever"></div>
+                        </div>
+                        <span class="font-mono text-[9px] text-dorado uppercase tracking-widest font-bold">Power</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#1A1614] text-papel py-12 px-6 border-t-4 border-dorado">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-4">
+                <img src="logo mtc.png" alt="MTC" class="h-8 filter invert opacity-80" onerror="this.style.display='none';">
+                <span class="font-serif font-bold text-xl text-dorado">Montería: Tierra de Cultura</span>
+            </div>
+            <div class="text-center md:text-right font-mono text-[10px] text-papel/50 tracking-widest leading-relaxed">
+                <p>PROYECTO DE RECUPERACIÓN HISTÓRICA © 2024</p>
+                <p class="mt-1">Diseñado para la memoria sonora y visual del Sinú.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ZONA SPREADSHEET MODAL (ÉTICA IA) -->
+    <div id="spreadsheet-backdrop" class="fixed inset-0 bg-tinta/40 backdrop-blur-md z-[98] opacity-0 pointer-events-none transition-opacity duration-300" onclick="cerrarSpreadsheet()"></div>
+    <div id="spreadsheet-modal" class="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-4xl mx-auto bg-papel border-2 border-tinta shadow-vinilo z-[99] opacity-0 pointer-events-none transition-all duration-300 flex flex-col max-h-[85vh]">
+        <div class="bg-tinta text-papel px-4 py-2 flex justify-between items-center">
+            <span class="font-mono text-xs tracking-widest font-bold flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 bg-dorado rounded-sm"></span>
+                MATRIZ_ETICA_IMAGENES_GENERATIVAS_SINU.xlsx
+            </span>
+            <button onclick="cerrarSpreadsheet()" class="text-papel hover:text-rojo-vintage font-bold text-lg">✕</button>
+        </div>
+        <div class="p-6 overflow-auto flex-1 custom-scrollbar">
+            <!-- Spreadsheet Sheet Selector Tabs -->
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-tinta/20 pb-4 mb-4">
+                <div class="flex gap-2">
+                    <button id="sheet-tab-1" onclick="switchSheet(1)" class="px-2 py-1 bg-tinta text-papel font-mono text-[10px] rounded-sm uppercase font-bold transition-all duration-200">Hoja 1: Matriz Ética</button>
+                    <button id="sheet-tab-2" onclick="switchSheet(2)" class="px-2 py-1 bg-tinta/10 text-tinta font-mono text-[10px] rounded-sm uppercase font-bold transition-all duration-200 hover:bg-tinta/20">Hoja 2: Log de Producción</button>
+                </div>
+                <span class="font-mono text-[10px] text-tinta/50">Última edición: Mayo 2026</span>
+            </div>
+
+            <!-- HOJA 1: MATRIZ ÉTICA (ORIGINAL) -->
+            <div id="sheet-content-1" class="transition-opacity duration-300">
+                <div class="overflow-x-auto border border-tinta/30 rounded-sm">
+                    <table class="w-full text-left font-mono text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-tinta/5 border-b border-tinta/30">
+                                <th class="p-3 border-r border-tinta/20 text-tinta/50 w-12 text-center">Ref</th>
+                                <th class="p-3 border-r border-tinta/20 text-tinta font-bold">Criterio Ético</th>
+                                <th class="p-3 border-r border-tinta/20 text-tinta font-bold">Riesgo Identificado</th>
+                                <th class="p-3 border-r border-tinta/20 text-tinta font-bold">Mitigación Aplicada</th>
+                                <th class="p-3 text-tinta font-bold text-center">Estado de Impacto</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-tinta/10">
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 text-center text-tinta/50 font-bold">A1</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta font-bold">Consentimiento de Archivos</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Uso de retratos históricos locales sin consentimiento expreso de descendientes directos.</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Uso exclusivo de archivos catalogados en el dominio público o bajo licencias de preservación abierta.</td>
+                                <td class="p-3 text-center"><span class="px-2 py-0.5 bg-green-200 text-green-800 rounded-full font-bold text-[9px]">RIESGO CONTROLADO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 text-center text-tinta/50 font-bold">A2</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta font-bold">Sesgo Algorítmico y Cultural</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Sobrerrepresentación de dinámicas coloniales en los modelos latentes que desdibujan la herencia Zenú.</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Ingeniería de prompts contextualizada históricamente con descriptores específicos de etno-antropología sinuana.</td>
+                                <td class="p-3 text-center"><span class="px-2 py-0.5 bg-yellow-200 text-yellow-800 rounded-full font-bold text-[9px]">EN MONITOREO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 text-center text-tinta/50 font-bold">A3</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta font-bold">Alucinación en Patrimonio</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Generación errónea de arquitectura de la Catedral y plazas, inventando elementos barrocos inexistentes.</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">ControlNet guiado por bocetos y planos originales del archivo histórico de San Jerónimo de Montería.</td>
+                                <td class="p-3 text-center"><span class="px-2 py-0.5 bg-red-200 text-red-800 rounded-full font-bold text-[9px]">ACCION REQUERIDA</span></td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 text-center text-tinta/50 font-bold">A4</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta font-bold">Transparencia Tecnológica</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Confusión del espectador entre un registro fotográfico auténtico y una reconstrucción sintética IA.</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">Sello visual indeleble ("AI-Restored") y metadatos integrados que especifican la tasa de restauración sintética.</td>
+                                <td class="p-3 text-center"><span class="px-2 py-0.5 bg-green-200 text-green-800 rounded-full font-bold text-[9px]">RIESGO CONTROLADO</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- HOJA 2: LOG DE PRODUCCIÓN (EN BASE AL SPREADSHEET HISTÓRICO) -->
+            <div id="sheet-content-2" class="hidden transition-opacity duration-300">
+                <!-- Seccion El Desafio + Metricas -->
+                <div class="flex flex-col md:flex-row gap-6 mb-6">
+                    <div class="flex-1 bg-white border border-tinta/20 p-5 rounded-sm">
+                        <h4 class="font-serif text-xl font-bold text-tinta italic mb-2">El Desafío</h4>
+                        <p class="font-sans text-xs md:text-sm text-tinta/80 leading-relaxed">
+                            ¿Cómo traemos el pasado al presente sin que se sienta como un museo empolvado? Tenemos cajas llenas de recuerdos familiares que nadie mira. Proponemos sacar las fotos viejas, las partituras y los relatos de los abuelos para ponerlos donde estamos hoy: el <b>mundo digital</b>.
+                        </p>
+                    </div>
+                    <!-- Tarjeta de Metricas con diseno Exacto de la foto -->
+                    <div class="md:w-72 bg-white border border-tinta/20 p-4 rounded-sm flex flex-col justify-center">
+                        <span class="font-mono text-[9px] text-tinta/60 tracking-widest text-center font-bold block mb-3">MÉTRICAS DE GENERACIÓN</span>
+                        <div class="grid grid-cols-3 divide-x divide-tinta/20">
+                            <div class="text-center">
+                                <span class="block font-serif text-2xl font-bold text-tinta">7</span>
+                                <span class="font-mono text-[8px] text-tinta/50 font-bold block mt-1">FOTOS BASE</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="block font-serif text-2xl font-bold text-rojo-vintage">217</span>
+                                <span class="font-mono text-[8px] text-tinta/50 font-bold block mt-1">INTENTOS IA</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="block font-serif text-2xl font-bold text-tinta">25</span>
+                                <span class="font-mono text-[8px] text-tinta/50 font-bold block mt-1">FINALES</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="font-mono text-[10px] text-tinta/70 tracking-widest font-bold uppercase mb-3">LOG DE PRODUCCIÓN Y PROMPTS</div>
+                <!-- Grid de Parametros y Prompts de la imagen -->
+                <div class="overflow-x-auto border border-tinta/30 rounded-sm">
+                    <table class="w-full text-left font-mono text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-tinta/5 border-b border-tinta/30">
+                                <th class="p-3 border-r border-tinta/20 text-tinta font-bold w-1/4">Parámetro</th>
+                                <th class="p-3 border-r border-tinta/20 text-tinta font-bold">Observación y Ajustes</th>
+                                <th class="p-3 text-tinta font-bold text-center w-28">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-tinta/10">
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 font-bold text-tinta">Mantenimiento de Encuadre</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80 space-y-1">
+                                    <p>Si la imagen principal tiene un plano general, los resultados mantienen el encuadre. Se pierden detalles faciales finos.</p>
+                                    <p class="text-rojo-vintage font-bold text-[11px]">&gt; Acción: Iterar enfocando rostros por separado.</p>
+                                </td>
+                                <td class="p-3 text-center"><span class="px-3 py-1 bg-white border border-tinta text-tinta font-bold text-[10px] tracking-widest block rounded-sm">ESTABLE</span></td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 font-bold text-tinta">Modificación de Planos</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">
+                                    Pasar de primer plano a plano medio varía drásticamente la composición. El modelo no soporta inventar información coherente fuera del área original.
+                                </td>
+                                <td class="p-3 text-center"><span class="px-3 py-1 bg-white border border-rojo-vintage text-rojo-vintage font-bold text-[10px] tracking-widest block rounded-sm">FALLIDO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border-r border-tinta/20 bg-tinta/5 font-bold text-tinta">Ingeniería Cultural</td>
+                                <td class="p-3 border-r border-tinta/20 text-tinta/80">
+                                    La IA genera bandas con trajes occidentales de orquesta clásica. Se sumaron directrices: <span class="italic font-bold">"colombian folkloric", "sombrero vueltiao", "porro band suits"</span> para obtener resultados fieles al Sinú.
+                                </td>
+                                <td class="p-3 text-center"><span class="px-3 py-1 bg-white border border-emerald-600 text-emerald-600 font-bold text-[10px] tracking-widest block rounded-sm">RESUELTO</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="bg-papel-oscuro px-4 py-3 border-t border-tinta/20 flex justify-between items-center text-[10px] font-mono text-tinta/70">
+            <span>✓ Conectado a la base de datos de Montería</span>
+            <span class="italic">Criterio Ético V.2.6</span>
+        </div>
+    </div>
+
+    <!-- ZONA MODAL: PANEL DE DETALLES (LA BITÁCORA) -->
+    <div id="detail-backdrop" onclick="cerrarDetalle()"></div>
+    <div id="detail-panel" class="custom-scrollbar">
+        <div class="p-8 relative h-full flex flex-col">
+            <button onclick="cerrarDetalle()" class="absolute top-6 right-6 w-10 h-10 border-2 border-tinta rounded-full flex items-center justify-center text-tinta hover:bg-rojo-vintage hover:text-papel hover:border-rojo-vintage transition-colors text-xl font-bold">&times;</button>
+            
+            <div class="mt-12 mb-8 border-b-2 border-tinta/20 pb-4">
+                <span class="font-mono text-xs font-bold text-rojo-vintage tracking-widest uppercase block mb-2" id="detail-tag">DOCUMENTO RECUPERADO</span>
+                <h3 class="font-serif text-4xl font-bold text-tinta" id="detail-title">Título del Evento</h3>
+                <span class="font-mono text-lg text-tinta/60 mt-2 block" id="detail-year">1900</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-4">
+                <!-- Polaroid interna -->
+                <div class="polaroid mb-8 mx-auto max-w-[300px]">
+                    <div class="tape-effect"></div>
+                    <img id="detail-img" src="https://images.unsplash.com/photo-1542360548-d368e73afbc3?auto=format&fit=crop&q=80&w=600" alt="Archivo" class="w-full h-48 object-cover filter sepia brightness-90">
+                </div>
+
+                <div class="font-sans text-tinta/80 leading-relaxed space-y-4" id="detail-content">
+                    <p>Contenido histórico detallado...</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-tinta/20 text-center">
+                <p class="font-mono text-[10px] text-tinta/50">FIN DEL EXPEDIENTE</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // 1. DICCIONARIO DE TRADUCCIONES (i18n)
+        const translations = {
+            es: {
+                nav_intro: "Intro", nav_album: "El Álbum", nav_studio: "Estudio Sonoro", nav_radio: "Eco del Sinú", nav_ia: "Ética IA",
+                monteria: "MONTERÍA", hero_subtitle: "ARCHIVOS RECUPERADOS: CÓRDOBA", hero_slogan: "Tierra de Cultura y Cobres",
+                hero_desc: "Donde el río Sinú se curva, nace un compás que no se detiene. Bienvenidos a una exploración interactiva por los surcos de nuestra identidad.",
+                hero_btn: "Bajar la Aguja", album_title: "La Línea de Tiempo",
+                album_desc: '"La historia de la sabana tiene dos caras. Pasa el cursor sobre la carátula para voltearla y selecciona un lado para explorarlo."',
+                cover_file: "EXPEDIENTE 01", cover_hifi: "Alta Fidelidad", cover_timeline: "Línea de Tiempo Oficial", cover_hover: "Pasa el cursor para voltear ↺",
+                back_tracklist: "TRACKLIST OFICIAL", back_select: "SELECCIONE LA CARA A EXPLORAR",
+                play_side_a: "► LADO A", side_a_title: "Orígenes (1501 - 1977)", play_side_b: "► LADO B", side_b_title: "Modernidad (1998 - Hoy)",
+                studio_title: "Archivos de la Sabana", studio_hint: "Gira el disco manualmente para viajar en el tiempo",
+                ia_title: "Ética en la Inteligencia Artificial", ia_desc: "¿Hasta qué punto podemos intervenir el pasado sin borrar su esencia? Desliza el control para comparar.",
+                radio_title: "Eco del Sinú AM"
+            },
+            en: {
+                nav_intro: "Intro", nav_album: "The Album", nav_studio: "Sound Studio", nav_radio: "Sinú Echo", nav_ia: "AI Ethics",
+                monteria: "MONTERÍA", hero_subtitle: "RECOVERED ARCHIVES: CÓRDOBA", hero_slogan: "Land of Culture and Copper",
+                hero_desc: "Where the Sinú river curves, a rhythm is born that never stops. Welcome to an interactive exploration through the grooves of our identity.",
+                hero_btn: "Drop the Needle", album_title: "The Timeline",
+                album_desc: '"The history of the savanna has two sides. Hover over the cover to flip it and select a side to explore in the Sound Studio."',
+                cover_file: "FILE 01", cover_hifi: "High Fidelity", cover_timeline: "Official Timeline", cover_hover: "Hover to flip ↺",
+                back_tracklist: "OFFICIAL TRACKLIST", back_select: "SELECT A SIDE TO EXPLORE",
+                play_side_a: "► SIDE A", side_a_title: "Origins (1501 - 1977)", play_side_b: "► SIDE B", side_b_title: "Modernity (1998 - Today)",
+                studio_title: "Savanna Archives", studio_hint: "Spin the record manually to travel through time",
+                ia_title: "Ethics in Artificial Intelligence", ia_desc: "How far can we intervene in the past without erasing its essence? Slide the control to compare.",
+                radio_title: "Sinú Echo AM"
+            },
+            it: {
+                nav_intro: "Intro", nav_album: "L'Album", nav_studio: "Studio Sonoro", nav_radio: "Eco del Sinú", nav_ia: "Etica IA",
+                monteria: "MONTERÍA", hero_subtitle: "ARCHIVI RECUPERATI: CÓRDOBA", hero_slogan: "Terra di Cultura e Rame",
+                hero_desc: "Dove il fiume Sinú fa una curva, nasce un ritmo che non si ferma. Benvenuti a un'esplorazione interattiva attraverso i solchi della nuestra identità.",
+                hero_btn: "Abbassa l'Ago", album_title: "La Linea del Tempo",
+                album_desc: '"La historia della savana ha due facce. Passa il cursore sulla copertina per capovolgerla e seleziona un lato da esplorare nello Studio Sonoro."',
+                cover_file: "FILE 01", cover_hifi: "Alta Fedeltà", cover_timeline: "Cronologia Ufficiale", cover_hover: "Passa sopra per girare ↺",
+                back_tracklist: "TRACKLIST UFFICIALE", back_select: "SELEZIONA UN LATO DA ESPLORARE",
+                play_side_a: "► LATO A", side_a_title: "Origini (1501 - 1977)", play_side_b: "► LATO B", side_b_title: "Modernità (1998 - Oggi)",
+                studio_title: "Archivi della Sabana", studio_hint: "Gira el disco manualmente per viaggiare nel tempo",
+                ia_title: "Etica nell'Intelligenza Artificiale", ia_desc: "Fino a que punto podemos intervenire nel passato senza cancellarne l'essenza? Scorri per confrontare.",
+                radio_title: "Eco del Sinú AM"
+            },
+            zh: {
+                nav_intro: "介绍", nav_album: "专辑", nav_studio: "音响室", nav_radio: "西努回声", nav_ia: "人工智能伦理",
+                monteria: "蒙特里亚", hero_subtitle: "恢复的档案：科尔多瓦", hero_slogan: "文化与铜之乡",
+                hero_desc: "在西努河转弯的地方，诞生了永不停息的节奏。欢迎通过我们身份 de 沟壑进行互动探索。",
+                hero_btn: "放下唱针", album_title: "时间线",
+                album_desc: "“热带草原的历史有两面。将鼠标悬停在封面上翻转 it，并选择一面在音响室进行探索。”",
+                cover_file: "文件 01", cover_hifi: "高保真", cover_timeline: "官方时间线", cover_hover: "悬停翻转 ↺",
+                back_tracklist: "官方曲目", back_select: "选择要探索的一面",
+                play_side_a: "► A面", side_a_title: "起源 (1501 - 1977)", play_side_b: "► B面", side_b_title: "现代性 (1998 - 至今)",
+                studio_title: "热带草原档案", studio_hint: "手动旋转唱片以穿越时空",
+                ia_title: "人工智能中的伦理", ia_desc: "我们在不抹杀过去本质的情况下能在多大程度上干预过去？滑动控件进行比较。",
+                radio_title: "西努回声 AM"
+            }
+        };
+
+        function setLang(lang) {
+            document.querySelectorAll('[id^="lang-"]').forEach(el => el.classList.remove('lang-active'));
+            document.getElementById(`lang-${lang}`).classList.add('lang-active');
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+        }
+
+        // ==========================================
+        // 2. LÓGICA FÍSICA DEL VINILO Y SINTONIZADOR
+        // ==========================================
+
+        const eventosLadoA = [
+            { angle: 0, year: "1501", title: "Llegada de Bastidas", desc: "Rodrigo de Bastidas explora la costa del Caribe colombiano, acercándose a las bocas del río Sinú.", img: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&q=80&w=600" },
+            { angle: 96, year: "1777", title: "Fundación Oficial", desc: "Antonio de la Torre y Miranda funda oficialmente San Jerónimo de Buenavista, hoy Montería.", img: "https://images.unsplash.com/photo-1542360548-d368e73afbc3?auto=format&fit=crop&q=80&w=600" },
+            { angle: 192, year: "1952", title: "Capital de Córdoba", desc: "Se crea el departamento de Córdoba y Montería es designada como su capital administrativa.", img: "https://images.unsplash.com/photo-1517596009849-247565eb9e2b?auto=format&fit=crop&q=80&w=600" },
+            { angle: 288, year: "1977", title: "El Centenario", desc: "Celebración del bicentenario de la fundación. Un hito en el desarrollo urbano y cultural.", img: "https://images.unsplash.com/photo-1588661642878-62024db54c86?auto=format&fit=crop&q=80&w=600" },
+        ];
+        
+        const eventosLadoB = [
+            { angle: 0, year: "1998", title: "Ronda del Sinú", desc: "Se inicia la construcción de la Ronda del Sinú, el parque lineal más largo de América Latina.", img: "https://images.unsplash.com/photo-1518235506717-e1ed3306a89b?auto=format&fit=crop&q=80&w=600" },
+            { angle: 144, year: "2012", title: "Ciudad Sostenible", desc: "Montería es reconocida internacionalmente por sus esfuerzos en sostenibilidad and urbanismo verde.", img: "https://images.unsplash.com/photo-1473172504847-a8e0f6eb9491?auto=format&fit=crop&q=80&w=600" },
+            { angle: 288, year: "2024", title: "Presente y Futuro", desc: "La ciudad contemporánea, un equilibrio entre herencia, río e innovación tecnológica.", img: "https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80&w=600" },
+        ];
+
+        const disk = document.getElementById('disk');
+        const diskWrapper = document.getElementById('disk-wrapper');
+        const tonearm = document.getElementById('tonearm');
+        const markerLayer = document.getElementById('markers-layer');
+        const diskYearLabel = document.getElementById('disk-year-label');
+        const sideIndicator = document.getElementById('side-indicator');
+        const vinylLabel = document.getElementById('vinyl-label');
+        const uiSideTag = document.getElementById('ui-side-tag');
+        const yearDisplay = document.getElementById('year-display');
+        
+        const pitchSlider = document.getElementById('pitch-slider');
+        const dialContainer = document.getElementById('dial-container');
+        const dialNeedle = document.getElementById('dial-needle');
+        const dialMarkers = document.getElementById('dial-markers');
+        const dialSideIndicator = document.getElementById('dial-side-indicator');
+        const spinIcon = document.getElementById('spin-icon');
+
+        const NEEDLE_ANGLE = 45; 
+        const SNAP_STRENGTH = 0.12;
+        const SNAP_THRESHOLD = 8;
+        const BASE_AUTO_SPIN_SPEED = 0.25; 
+        let currentAutoSpinSpeed = BASE_AUTO_SPIN_SPEED;
+
+        let currentSide = 'A';
+        let activeHistory = eventosLadoA;
+        let currentRotation = 0; 
+        let isDragging = false;
+        let lastAngle = 0;
+        let velocity = 0;
+        let canInteract = true;
+        let isFlipping = false;
+        let isAutoSpinning = false; // Comienza pausado en Manual
+
+        pitchSlider.addEventListener('input', (e) => {
+            currentAutoSpinSpeed = BASE_AUTO_SPIN_SPEED * parseFloat(e.target.value);
+            if(isAutoSpinning) velocity = currentAutoSpinSpeed;
+        });
+
+        // --- FUNCIONES DE INICIO Y VOLTEO ---
+        function iniciarEstudio(lado) {
+            if(isFlipping) return;
+            currentSide = lado;
+            activeHistory = lado === 'A' ? eventosLadoA : eventosLadoB;
+            
+            document.getElementById('estudio').scrollIntoView({ behavior: 'smooth' });
+            
+            vinylLabel.style.backgroundColor = lado === 'A' ? '#D4C5B0' : '#8B8276';
+            sideIndicator.innerText = `LADO ${lado}`;
+            sideIndicator.style.color = lado === 'A' ? '#2B2623' : '#F0EBE1';
+            
+            document.getElementById('label-lado-pequeno').innerText = `LADO ${lado}`;
+            document.getElementById('galleta-vinilo-pequena').style.backgroundColor = lado === 'A' ? '#C5A059' : '#8B8276';
+            
+            initMarkers();
+            initDial();
+            updateControlUI();
+            
+            isFlipping = true;
+            diskWrapper.style.animation = 'none';
+            diskWrapper.offsetHeight; 
+            diskWrapper.style.animation = 'flip-out 0.4s ease-in forwards';
+            
+            setTimeout(() => {
+                currentRotation = 0;
+                applyRotation();
+                diskWrapper.style.animation = 'flip-in 0.4s ease-out forwards';
+                setTimeout(() => { isFlipping = false; }, 400);
+            }, 400);
+        }
+
+        function manualFlip() {
+            iniciarEstudio(currentSide === 'A' ? 'B' : 'A');
+        }
+
+        // --- DIBUJO DE INTERFACES DINÁMICAS ---
+        function initMarkers() {
+            markerLayer.innerHTML = '';
+            activeHistory.forEach((item, index) => {
+                const initialAngle = NEEDLE_ANGLE - item.angle;
+                const rad = (initialAngle - 90) * (Math.PI / 180);
+                const x = 50 + (Math.cos(rad) * 40); 
+                const y = 50 + (Math.sin(rad) * 40);
+                
+                const el = document.createElement('div');
+                el.className = 'marker';
+                el.id = `marker-${index}`;
+                el.style.left = `${x}%`;
+                el.style.top = `${y}%`;
+                el.style.transform = `translate(-50%, -50%)`;
+                
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    jumpToTrack(index);
+                    setTimeout(() => abrirDetalle(item), 300);
+                };
+                
+                markerLayer.appendChild(el);
+            });
+        }
+
+        function initDial() {
+            dialMarkers.innerHTML = '';
+            
+            for(let i = 0; i <= 100; i += 2) {
+                const tick = document.createElement('div');
+                tick.className = i % 10 === 0 ? 'absolute top-0 w-[1px] h-3 bg-polvo/60' : 'absolute top-0 w-[1px] h-1.5 bg-polvo/20';
+                tick.style.left = `${i}%`;
+                dialMarkers.appendChild(tick);
+            }
+
+            activeHistory.forEach((item, index) => {
+                const percent = 5 + (item.angle / 335) * 90;
+                
+                const mainTick = document.createElement('div');
+                mainTick.className = 'absolute top-0 w-[2px] h-4 bg-rojo-vintage/70 shadow-[0_0_4px_#9E2A2B]';
+                mainTick.style.left = `${percent}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'absolute bottom-1.5 text-[9px] font-mono font-bold -translate-x-1/2 cursor-pointer hover:text-rojo-vintage transition-all z-20 px-1 text-polvo/80';
+                label.innerText = item.year;
+                label.style.left = `${percent}%`;
+                label.onclick = () => jumpToTrack(index);
+
+                dialMarkers.appendChild(mainTick);
+                dialMarkers.appendChild(label);
+            });
+        }
+
+        // --- SISTEMA FÍSICO Y MATEMÁTICO ---
+        function getInterpolatedYear() {
+            if (currentRotation <= activeHistory[0].angle) return activeHistory[0].year;
+            if (currentRotation >= activeHistory[activeHistory.length - 1].angle) return activeHistory[activeHistory.length - 1].year;
+            
+            for (let i = 0; i < activeHistory.length - 1; i++) {
+                let a1 = activeHistory[i].angle;
+                let a2 = activeHistory[i+1].angle;
+                if (currentRotation >= a1 && currentRotation <= a2) {
+                    let progress = (currentRotation - a1) / (a2 - a1);
+                    let y1 = parseInt(activeHistory[i].year);
+                    let y2 = parseInt(activeHistory[i+1].year);
+                    return Math.round(y1 + progress * (y2 - y1));
+                }
+            }
+            return "----";
+        }
+
+        function jumpToTrack(index) {
+            if (!canInteract || isFlipping) return;
+            const item = activeHistory[index];
+            currentRotation = item.angle; 
+            velocity = 0; 
+            
+            if (isAutoSpinning) {
+                isAutoSpinning = false;
+                updateControlUI();
+            }
+            applyRotation();
+        }
+
+        function toggleAutoSpin() {
+            isAutoSpinning = !isAutoSpinning;
+            updateControlUI();
+            if(isAutoSpinning) velocity = currentAutoSpinSpeed; 
+        }
+
+        function updateControlUI() {
+            spinIcon.innerText = isAutoSpinning ? "⏸" : "▶";
+            uiSideTag.innerText = `CONTROL MÁSTER - LADO ${currentSide} ${isAutoSpinning ? '(AUTO)' : '(MANUAL)'}`;
+            dialSideIndicator.innerText = `LADO ${currentSide}`;
+        }
+
+        function applyRotation() {
+            disk.style.transform = `rotate(${currentRotation}deg)`;
+            
+            const armAngle = 25 + (currentRotation / 360) * 15;
+            tonearm.style.transform = `rotate(${armAngle}deg)`;
+            
+            let dialProgress = 5 + (currentRotation / 335) * 90;
+            dialProgress = Math.max(0, Math.min(100, dialProgress));
+            dialNeedle.style.left = `${dialProgress}%`;
+            
+            const currentYearStr = getInterpolatedYear();
+            diskYearLabel.innerText = currentYearStr;
+            yearDisplay.innerText = currentYearStr;
+
+            let activeItem = null;
+
+            activeHistory.forEach((item, index) => {
+                const el = document.getElementById(`marker-${index}`);
+                if (!el) return;
+                
+                let diff = Math.abs(currentRotation - item.angle);
+                if (diff > 180) diff = 360 - diff;
+                
+                if (diff < SNAP_THRESHOLD) {
+                    el.classList.add('active-under-needle');
+                    diskYearLabel.innerText = item.title; 
+                    activeItem = item;
+                } else {
+                    el.classList.remove('active-under-needle');
+                }
+            });
+
+            const infoWindow = document.getElementById('info-window');
+            const infoImg = document.getElementById('info-img');
+
+            if (activeItem && infoWindow) {
+                document.getElementById('info-year').innerText = activeItem.year;
+                document.getElementById('info-title').innerText = activeItem.title;
+                document.getElementById('info-desc').innerText = activeItem.desc;
+                infoImg.src = activeItem.img;
+                
+                infoWindow.classList.remove('opacity-0', 'pointer-events-none');
+                infoWindow.classList.add('opacity-100', 'pointer-events-auto');
+                infoImg.classList.remove('opacity-0');
+                infoWindow.dataset.activeIndex = activeHistory.indexOf(activeItem);
+            } else if (infoWindow) {
+                infoWindow.classList.remove('opacity-100', 'pointer-events-auto');
+                infoWindow.classList.add('opacity-0', 'pointer-events-none');
+                if(infoImg) infoImg.classList.add('opacity-0');
+            }
+        }
+
+        function updatePhysics() {
+            if (!canInteract || isFlipping) {
+                requestAnimationFrame(updatePhysics);
+                return;
+            }
+
+            if (!isDragging && !isDraggingDial) {
+                if (isAutoSpinning) {
+                    velocity = currentAutoSpinSpeed;
+                } else {
+                    velocity *= 0.95; 
+                }
+
+                if (!isAutoSpinning && Math.abs(velocity) < 1.5) {
+                    let closestSnap = null;
+                    let minDiff = Infinity;
+                    
+                    activeHistory.forEach(item => {
+                        let diff = currentRotation - item.angle;
+                        if (diff > 180) diff -= 360;
+                        if (diff < -180) diff += 360;
+                        
+                        if (Math.abs(diff) < SNAP_THRESHOLD && Math.abs(diff) < minDiff) {
+                            minDiff = diff;
+                            closestSnap = item;
+                        }
+                    });
+
+                    if (closestSnap !== null) {
+                        velocity -= minDiff * SNAP_STRENGTH;
+                    }
+                }
+            }
+
+            currentRotation += velocity;
+            if (currentRotation >= 360) currentRotation -= 360;
+            if (currentRotation < 0) currentRotation += 360;
+
+            applyRotation();
+            requestAnimationFrame(updatePhysics);
+        }
+
+        function getAngle(e) {
+            const rect = diskWrapper.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
+        }
+
+        function startDrag(e) {
+            if(!canInteract || isFlipping) return;
+            isDragging = true;
+            isAutoSpinning = false;
+            updateControlUI();
+            lastAngle = getAngle(e);
+            velocity = 0;
+            disk.style.transition = 'none';
+        }
+
+        function doDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const currentA = getAngle(e);
+            let diff = currentA - lastAngle;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            velocity = diff;
+            lastAngle = currentA;
+        }
+
+        function endDrag() {
+            if(!isDragging) return;
+            isDragging = false;
+            disk.style.transition = '';
+        }
+
+        disk.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', doDrag, {passive: false});
+        window.addEventListener('mouseup', endDrag);
+
+        disk.addEventListener('touchstart', startDrag, {passive: true});
+        window.addEventListener('touchmove', doDrag, {passive: false});
+        window.addEventListener('touchend', endDrag);
+
+        let isDraggingDial = false;
+        function updateDialFromMouse(e) {
+            const rect = dialContainer.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            let x = clientX - rect.left;
+            let percent = (x / rect.width) * 100;
+            percent = Math.max(5, Math.min(95, percent)); 
+            currentRotation = ((percent - 5) / 90) * 335;
+            velocity = 0;
+            if(isAutoSpinning) { isAutoSpinning = false; updateControlUI(); }
+        }
+
+        dialContainer.addEventListener('mousedown', (e) => {
+            if(!canInteract || isFlipping) return;
+            isDraggingDial = true;
+            updateDialFromMouse(e);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if(isDraggingDial) updateDialFromMouse(e);
+        });
+        window.addEventListener('mouseup', () => { isDraggingDial = false; });
+        
+        dialContainer.addEventListener('touchstart', (e) => {
+            if(!canInteract || isFlipping) return;
+            isDraggingDial = true;
+            updateDialFromMouse(e);
+        }, {passive: true});
+        window.addEventListener('touchmove', (e) => {
+            if(isDraggingDial) updateDialFromMouse(e);
+        }, {passive: false});
+        window.addEventListener('touchend', () => { isDraggingDial = false; });
+
+        // Iniciar Lógica
+        initMarkers();
+        initDial();
+        updateControlUI();
+        requestAnimationFrame(updatePhysics);
+
+        // ==========================================
+        // 4. LÓGICA RADIO VINTAGE
+        // ==========================================
+        const knobTune = document.getElementById('knob-tune');
+        const radioNeedle = document.getElementById('radio-needle');
+        const powerSwitch = document.getElementById('power-switch');
+        const dialGlow = document.getElementById('dial-glow');
+        const vuNeedle = document.getElementById('vu-needle');
+        let radioOn = false;
+        let vuInterval;
+
+        function setupKnob(element, callback) {
+            let draggingKnob = false;
+            let currentRot = 0;
+            let startY = 0;
+            
+            element.addEventListener('mousedown', (e) => { draggingKnob = true; startY = e.clientY; });
+            element.addEventListener('touchstart', (e) => { draggingKnob = true; startY = e.touches[0].clientY; }, {passive:true});
+            
+            window.addEventListener('mousemove', (e) => {
+                if(!draggingKnob) return;
+                const diff = (startY - e.clientY);
+                currentRot = Math.max(-150, Math.min(150, currentRot + diff));
+                element.querySelector('.knob-wheel').style.transform = `rotate(${currentRot}deg)`;
+                startY = e.clientY;
+                if(callback) callback(currentRot);
+            });
+            window.addEventListener('touchmove', (e) => {
+                if(!draggingKnob) return;
+                const diff = (startY - e.touches[0].clientY);
+                currentRot = Math.max(-150, Math.min(150, currentRot + diff));
+                element.querySelector('.knob-wheel').style.transform = `rotate(${currentRot}deg)`;
+                startY = e.touches[0].clientY;
+                if(callback) callback(currentRot);
+            }, {passive:true});
+            
+            window.addEventListener('mouseup', () => draggingKnob = false);
+            window.addEventListener('touchend', () => draggingKnob = false);
+        }
+
+        setupKnob(knobTune, (rot) => {
+            const pct = ((rot + 150) / 300) * 100;
+            radioNeedle.style.left = `${pct}%`;
+        });
+        setupKnob(document.getElementById('knob-vol'));
+
+        powerSwitch.addEventListener('click', () => {
+            radioOn = !radioOn;
+            if(radioOn) {
+                powerSwitch.classList.add('toggle-switch-active');
+                dialGlow.classList.add('active');
+                vuInterval = setInterval(() => {
+                    const val = -45 + Math.random() * 90;
+                    vuNeedle.style.transform = `translateX(-50%) rotate(${val}deg)`;
+                }, 150);
+            } else {
+                powerSwitch.classList.remove('toggle-switch-active');
+                dialGlow.classList.remove('active');
+                clearInterval(vuInterval);
+                vuNeedle.style.transform = `translateX(-50%) rotate(-45deg)`;
+            }
+        });
+
+        // ==========================================
+        // 5. MODAL BITÁCORA (DETALLES)
+        // ==========================================
+        const detailPanel = document.getElementById('detail-panel');
+        const detailBackdrop = document.getElementById('detail-backdrop');
+
+        function abrirDetalleDesdeInfo() {
+            const infoWindow = document.getElementById('info-window');
+            const index = infoWindow.dataset.activeIndex;
+            if (index !== undefined && activeHistory[index]) {
+                abrirDetalle(activeHistory[index]);
+            }
+        }
+
+        function abrirDetalle(evento) {
+            document.getElementById('detail-title').innerText = evento.title;
+            document.getElementById('detail-year').innerText = evento.year;
+            document.getElementById('detail-content').innerHTML = `<p>${evento.desc}</p><p class="mt-4 font-serif italic text-tinta/60">Nota del Archivista: Este registro fue recuperado y digitalizado para preservar la memoria sonora y visual del departamento de Córdoba.</p>`;
+            document.getElementById('detail-img').src = evento.img;
+            
+            detailPanel.classList.add('open');
+            detailBackdrop.classList.add('active');
+        }
+
+        function cerrarDetalle() {
+            detailPanel.classList.remove('open');
+            detailBackdrop.classList.remove('active');
+        }
+
+        // ==========================================
+        // 6. LÓGICA SLIDER ÉTICA IA Y SPREADSHEET
+        // ==========================================
+        const iaSlider = document.getElementById('ia-slider');
+        const iaForeground = document.getElementById('ia-foreground');
+        iaSlider.addEventListener('input', (e) => {
+            iaForeground.style.width = `${e.target.value}%`;
+        });
+
+        const ssModal = document.getElementById('spreadsheet-modal');
+        const ssBackdrop = document.getElementById('spreadsheet-backdrop');
+
+        function abrirSpreadsheet() {
+            if (ssModal && ssBackdrop) {
+                ssModal.classList.remove('opacity-0', 'pointer-events-none');
+                ssModal.classList.add('opacity-100', 'pointer-events-auto');
+                ssBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+                ssBackdrop.classList.add('opacity-100', 'pointer-events-auto');
+            }
+        }
+
+        function cerrarSpreadsheet() {
+            if (ssModal && ssBackdrop) {
+                ssModal.classList.add('opacity-0', 'pointer-events-none');
+                ssModal.classList.remove('opacity-100', 'pointer-events-auto');
+                ssBackdrop.classList.add('opacity-0', 'pointer-events-none');
+                ssBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+        }
+
+        // Función para cambiar de Hoja en el Spreadsheet
+        function switchSheet(sheetNum) {
+            const tab1 = document.getElementById('sheet-tab-1');
+            const tab2 = document.getElementById('sheet-tab-2');
+            const content1 = document.getElementById('sheet-content-1');
+            const content2 = document.getElementById('sheet-content-2');
+
+            if (sheetNum === 1) {
+                tab1.className = "px-2 py-1 bg-tinta text-papel font-mono text-[10px] rounded-sm uppercase font-bold transition-all duration-200";
+                tab2.className = "px-2 py-1 bg-tinta/10 text-tinta font-mono text-[10px] rounded-sm uppercase font-bold transition-all duration-200 hover:bg-tinta/20";
+                content1.classList.remove('hidden');
+                content2.classList.add('hidden');
+            } else {
+                tab2.className = "px-2 py-1 bg-tinta text-papel font-mono text-[10px] rounded-sm uppercase font-bold transition-all duration-200";
+                tab1.className = "px-2 py-1 bg-tinta/10 text-tinta font-mono text-[10px] rounded-sm uppercase font-bold transition-all duration-200 hover:bg-tinta/20";
+                content2.classList.remove('hidden');
+                content1.classList.add('hidden');
+            }
+        }
+
+    </script>
+</body>
+</html>
